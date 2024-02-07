@@ -10,6 +10,7 @@ import axios from '../config/api';
 
 
 // LLENAR EL ARREGLO DE PAGOS
+
 let pagos = ref([]);
 onMounted(() => {
     axios('/pagos')
