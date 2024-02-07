@@ -9,7 +9,7 @@ import Header from './components/Header.vue';
 <template>
   <div class="flex flex-row">
     <Navbar />
-    <div class="w-full px-4">
+    <div class=" w-full px-4">
       <Header/>
       <RouterView />
     </div>
