@@ -15,8 +15,8 @@ const solicitudPago = ref({
 });
 const numero = ref<string[]>([]);
 const ingresado = ref<number>(0);
-let pagos = ref<any>([]);
-
+const pagos = ref<any>([]);
+const tips = ref(0);
 
 
 //METODO DE PAGO
@@ -47,13 +47,14 @@ const borrarNumeroPanel = (): void => {
     ingresado.value = 0;
 }
 
-const propinas = ref(0);
-//PETICIONES AL BACKEND
 
 //CALCULAR PAGOS PROPINAS POR EMPLEADOS
-const propinasEmpleados = (propina: number): void => {
-    propinas.value = propina;
+
+const onChangePropina = (propina: number): any => {
+    tips.value = propina;
 }
+
+//PETICIONES AL BACKEND
 
 onMounted(() => {
     axios('/pagos')
@@ -85,7 +86,7 @@ const existenPagos = computed(() => pagos.value.length > 0);
         <div class="flex flex-col gap-4 justify-between w-1/3">
             <!--TOTAL QUE LE CORRESPONDE A CADA EMPLEADO POR PROPINA-->
             <PagoPorEmpleado
-            :selected-propina="propinasEmpleados" @on-change-propina="propinasEmpleados"
+            :selected-propina="onChangePropina" @on-change-propina="onChangePropina"
             />
             <!--SELECCIONA EL METODO DE PAGO-->
             <div class="flex flex-row items-center gap-3">

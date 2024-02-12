@@ -3,39 +3,34 @@ import { ref, computed } from 'vue';
 import { tipCalculator } from '../helpers/tipPerEmployee';
 import formatMoney from '../helpers/formatMoney';
 
-
+const persons = ref(1);
+const propina = ref(0);
 
 const props = defineProps<{
     selectedPropina: Number
 }>();
-
 // Define los eventos emitidos
 const emits = defineEmits<{
-    (event: 'propinasEmpleados', value: number): number,
+    (event: 'onChangePropina', value: number): number,
 }>()
 
 
-let persons = ref(1);
-let propina = ref(0);
 const updatePropina = (e: Event) => {
     const inputValue = parseFloat(e.target.value);
     if (!isNaN(inputValue) && inputValue >= 0) {
-        propina.value = inputValue;
-    }
-    else {
-        throw new Error('El número de la propina debe ser un entero positivo.');
+        propina.value = inputValue;   
     }
 };
+
 const updatePerson = (e: Event) => {
     const inputValue = parseFloat(e.target.value);
     if (!isNaN(inputValue) && inputValue >= 0) {
         persons.value = inputValue;
     }
-    else {
-        throw new Error('El número de empleados debe ser un entero positivo.');
-    }
 };
+
 const totalPorPersona = computed(() => tipCalculator.tipPerEmployee(propina.value, persons.value));
+
 </script>
 
 
@@ -43,10 +38,14 @@ const totalPorPersona = computed(() => tipCalculator.tipPerEmployee(propina.valu
 <template>
     <div class="text-[--color2] font-bold flex flex-col w-full items-center">
         <p>Total Propinas</p>
-        <div class="flex flex-row items-center gap-2">
+        <div class="flex flex-row items-center gap-2"
+        @input="emits('onChangePropina', propina)"
+        >
             <input type="number" class="w-56 bg-[--color3] rounded-md text-4xl py-2 text-center" min="1"
-                @input="updatePropina" v-model="propina">
-            <font-awesome-icon icon="edit" size="2x" class="text-[--color4]" />
+                @input="updatePropina" v-model="propina"
+                >
+            <font-awesome-icon icon="edit" size="2x" class="text-[--color4]" 
+            />
         </div>
     </div>
     <div>
