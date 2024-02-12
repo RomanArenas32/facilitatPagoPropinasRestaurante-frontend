@@ -13,10 +13,6 @@ const totalPagado = computed(() => {
     return props.pagos.reduce((total, pago) => (total += pago.monto), 0);
 });
 
-const emits = defineEmits<{
-    (event: 'onChangeResta', value: number): void,
-}>()
-
 
 const restaPagar = computed(() => {
     const propinas = props.tips;

@@ -135,5 +135,5 @@ const existenPagos = computed(() => pagos.value.length > 0);
             </div>
         </div>
     </div>
-    <Results :tips="tips" :pagos="pagos" :selected-propina="onChangeResta" @on-change-propina="onChangeResta"/>
+    <Results :tips="tips" :pagos="pagos" />
 </template>
