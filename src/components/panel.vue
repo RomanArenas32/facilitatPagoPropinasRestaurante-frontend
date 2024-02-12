@@ -18,7 +18,6 @@ const ingresado = ref<number>(0);
 const pagos = ref<any>([]);
 const tips = ref(0);
 
-
 //METODO DE PAGO
 const onChangePago = (metodo: string): void => {
     solicitudPago.value.metodo = metodo;
@@ -46,7 +45,10 @@ const borrarNumeroPanel = (): void => {
     numero.value = [];
     ingresado.value = 0;
 }
-
+//CUANTO RESTA PAGAR
+const onChangeResta = (restaPagar: number): any => {
+    restaPagar.value = restaPagar;
+}
 
 //CALCULAR PAGOS PROPINAS POR EMPLEADOS
 
@@ -133,5 +135,5 @@ const existenPagos = computed(() => pagos.value.length > 0);
             </div>
         </div>
     </div>
-    <Results :pagos="pagos" />
+    <Results :tips="tips" :pagos="pagos" :selected-propina="onChangeResta" @on-change-propina="onChangeResta"/>
 </template>
