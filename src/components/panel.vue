@@ -1,52 +1,87 @@
 <script setup lang="ts">
-import ButtonPanel from '../utils/ButtonPanel.vue';
 import TicketPago from '../utils/TicketPago.vue';
 import Results from './Results.vue';
 import formatMoney from '../helpers/formatMoney';
 import { tipCalculator } from '../helpers/tipPerEmployee';
 import { ref, onMounted, computed } from 'vue';
 import axios from '../config/api';
+import MetodoPago from './MetodoPago.vue';
+import NumberPanel from './NumberPaner.vue';
+
+//VARIABLES GLOBALES
+const solicitudPago = ref({
+    metodo: "",
+    monto: 0
+});
+const numero = ref<string[]>([]);
+const ingresado = ref<number>(0);
+let pagos = ref<object>([]);
+
+
+
+//METODO DE PAGO
+const onChangePago = (metodo: string): void => {
+    solicitudPago.value.metodo = metodo;
+}
+//ELEGIR MONTO A PAGAR
+
+const onChangeMonto = (monto: string): void => {
+    if (monto !== "ok") {
+        numero.value.push(monto);
+        ingresado.value = +numero.value.join("");
+        solicitudPago.value.monto = ingresado.value;
+    } else {
+        console.log(`Enviando pago por ${formatMoney(ingresado.value)}`);
+        const datosPago = {
+            metodo: solicitudPago.value.metodo,
+            monto: solicitudPago.value.monto
+        };
+        enviarPago(datosPago);
+    }
+}
+
+//BORRAR NUMERO DEL PANEL PARA ENVIAR PAGO
+const borrarNumeroPanel = (): void => {
+    solicitudPago.value.monto = 0;
+    numero.value = [];
+    ingresado.value = 0;
+}
+
+
+//PETICIONES AL BACKEND
+
+//RECIBIR LOS PAGOS HECHOS
+
+onMounted(() => {
+    axios('/pagos')
+        .then(resp => { pagos.value = resp.data.pagos;})
+        .catch(error => console.log(error));
+});
+
+//ENVIAR PAGO
+const enviarPago = async (data: object) => {
+    console.log(data)
+    try {
+        const resp = await axios.post('/pagos', data);
+        console.log(resp.data);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+
+
 
 
 
 // LLENAR EL ARREGLO DE PAGOS
 
-let pagos = ref([]);
-onMounted(() => {
-    axios('/pagos')
-        .then(resp => { pagos.value = resp.data.pagos; })
-        .catch(error => console.log(error));
-});
+
 
 //comprueba si existen pagos realizados
 const existenPagos = computed(() => pagos.value.length > 0);
 
 let cantidadRestante = 2
-
-
-
-//PANEL DE NUMEROS
-let cantidadIngresada = ref(0);
-let ingresarPago = ref(cantidadIngresada);
-
-const agregarNumero = (num: number) => {
-    ingresarPago.value = ingresarPago.value * 10 + num;
-    cantidadIngresada.value = Number(ingresarPago.value);
-};
-const deleteLastNumber = () => {
-    ingresarPago.value = 0;
-    pago = 0;
-};
-
-const selectedOption = ref('');
-
-const selectOption = (option: string) => {
-    selectedOption.value = option;
-};
-const formData = ref({
-    metodo: selectedOption,
-    monto: cantidadIngresada,
-});
 
 //CALCULAR PROPINA POR PERSONA
 let persons = ref(1);
@@ -72,19 +107,11 @@ const updatePerson = (e: Event) => {
     }
 };
 const totalPorPersona = computed(() => tipCalculator.tipPerEmployee(propina.value, persons.value));
-console.log(totalPorPersona);
 
 
 
 //ENVIAR FORMULARIO DEL PAGO
-const submitForm = async (data: object) => {
-    try {
-        const resp = await axios.post('/pagos', { data });
-        console.log(resp.data);
-    } catch (error) {
-        console.log(error);
-    }
-};
+
 
 </script>
 <template>
@@ -113,76 +140,39 @@ const submitForm = async (data: object) => {
                 </div>
             </div>
 
-            <div class="text-[--color4] font-extrabold text-xl mt-10 flex flex-col gap-8">
-                <div class="flex flex-row items-center gap-3">
-                    <font-awesome-icon icon="wallet" />
-                    <p>Elige el Método de Pago</p>
-                </div>
-                <div class="flex flex-wrap font-semibold text-sm gap-1 ">
-                    <div class="flex flex-col w-44 justify-center items-center gap-2 rounded-2xl shadow-xl border-2 h-36 hover:bg-[--color2] hover:text-[--color3] hover:cursor-pointer"
-                        @click="() => selectOption('efectivo')" :class="{ 'selected': selectedOption === 'efectivo' }">
-                        
-                        <font-awesome-icon icon="money-bill-wave" />
-                        <p>Efectivo</p>
-                    </div>
-                    <div class="flex flex-col w-44 justify-center items-center gap-2 rounded-2xl shadow-xl border-2 h-36 hover:bg-[--color2] hover:text-[--color3] hover:cursor-pointer"
-                        name="BBVA 1234" @click="() => selectOption('Santander 1234')"
-                        :class="{ 'selected': selectedOption === 'BBVA 1234' }">
-                        
-                        <font-awesome-icon icon="credit-card" />
-                        <p>BBVA 1234</p>
-                    </div>
-                    <div class="flex flex-col w-44 justify-center items-center gap-2 rounded-2xl shadow-xl border-2 h-36 hover:bg-[--color2] hover:text-[--color3] hover:cursor-pointer"
-                        name="Santander 1234" @click="() => selectOption('Santander 1234')"
-                        :class="{ 'selected': selectedOption === 'Santander 1234' }">
-
-                        
-                        <font-awesome-icon icon="credit-card" />
-                        <p>Santander 1234</p>
-                    </div>
-                </div>
-
+            <!--SELECCIONA EL METODO DE PAGO-->
+            <div class="flex flex-row items-center gap-3">
+                <font-awesome-icon icon="wallet" />
+                <p>Elige el Método de Pago</p>
+            </div>
+            <div class="flex flex-row gap-1">
+                <MetodoPago :selected-pago="onChangePago" @on-change-pago="onChangePago" />
             </div>
         </div>
 
-        <div>
-            <div
-                :class="{ 'bg-gray-200 rounded-lg shadow-md py-10 px-6 h-4/5': (cantidadRestante === 0), 'bg-[--color3] border-2 border-[--color2] rounded-lg shadow-md py-10 px-6 h-4/5': (cantidadRestante !== 0) }">
 
-                <div class="flex flex-col text-left">
-                    <div class="flex flex-row justify-between gap-2 items-center">
-                        <input type="number" class="bg-transparent text-3xl text-center text-[--color4]"
-                            v-model="ingresarPago" />
-                        <font-awesome-icon :icon="['fas', 'arrow-right']" class="hover:cursor-pointer"
-                            @click="() => deleteLastNumber()" />
-                    </div>
-                    <hr class="mb-4 mt-2 border border-gray-400 focus:border-gray-500" />
+        <div
+            :class="{ 'bg-gray-200 rounded-lg shadow-md py-10 px-6 h-4/5': (ingresado === 0), 'bg-[--color3] border-2 border-[--color2] rounded-lg shadow-md py-10 px-6 h-4/5': (ingresado !== 0) }">
+
+            <div class="flex flex-col text-left">
+                <div class="flex flex-row justify-between gap-2 items-center">
+                    <input type="number" class="bg-transparent text-3xl text-center text-[--color4]" v-model="ingresado" />
+                    <font-awesome-icon :icon="['fas', 'arrow-right']" class="hover:cursor-pointer"
+                        @click="() => borrarNumeroPanel()" />
                 </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <ButtonPanel :valor="'1'" @click="agregarNumero(1)" />
-                    <ButtonPanel :valor="'2'" @click="agregarNumero(2)" />
-                    <ButtonPanel :valor="'3'" @click="agregarNumero(3)" />
-                    <ButtonPanel :valor="'4'" @click="agregarNumero(4)" />
-                    <ButtonPanel :valor="'5'" @click="agregarNumero(5)" />
-                    <ButtonPanel :valor="'6'" @click="agregarNumero(6)" />
-                    <ButtonPanel :valor="'7'" @click="agregarNumero(7)" />
-                    <ButtonPanel :valor="'8'" @click="agregarNumero(8)" />
-                    <ButtonPanel :valor="'9'" @click="agregarNumero(9)" />
-                    <ButtonPanel :valor="'00'" @click="agregarNumero(.00)" />
-                    <ButtonPanel :valor="'0'" @click="agregarNumero(0)" />
-                    <button
-                        :class="{ 'bg-gray-200': (cantidadRestante === 0), 'bg-[--color2] text-[--color3]': (cantidadRestante !== 0) }"
-                        class=" rounded-lg text-center text-4xl font-semibold text-[--color4] border-1 border border-gray-400 focus:border-gray-400"
-                        @click="() => submitForm(formData)">
-                        <font-awesome-icon :icon="['fas', 'check']" />
-                    </button>
-                </div>
-                <div v-if="cantidadRestante"
-                    class="w-full bg-[--color3] border-2 border-[--color2] mt-3 rounded-3xl grid place-items-center text-[--color2] font-bold text-xl h-14">
-                    {{ formatMoney(cantidadRestante) }}
-                </div>
+                <hr class="mb-4 mt-2 border border-gray-400 focus:border-gray-500" />
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <NumberPanel :selected-monto="onChangeMonto" @on-change-monto="onChangeMonto" />
+            </div>
+
+
+            <div v-if="cantidadRestante"
+                class="w-full bg-[--color3] border-2 border-[--color2] mt-3 rounded-3xl grid place-items-center text-[--color2] font-bold text-xl h-14">
+                {{ formatMoney(ingresado) }}
             </div>
         </div>
+
 
         <div class="flex flex-col gap-4">
             <p class="text-xl font-extrabold text-[--color4]">Pagos</p>
