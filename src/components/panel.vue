@@ -2,11 +2,11 @@
 import TicketPago from '../utils/TicketPago.vue';
 import Results from './Results.vue';
 import formatMoney from '../helpers/formatMoney';
-import { tipCalculator } from '../helpers/tipPerEmployee';
 import { ref, onMounted, computed } from 'vue';
 import axios from '../config/api';
 import MetodoPago from './MetodoPago.vue';
 import NumberPanel from './NumberPaner.vue';
+import PagoPorEmpleado from './PagoPorEmpleado.vue';
 
 //VARIABLES GLOBALES
 const solicitudPago = ref({
@@ -15,9 +15,8 @@ const solicitudPago = ref({
 });
 const numero = ref<string[]>([]);
 const ingresado = ref<number>(0);
-let pagos = ref<object>([]);
-let persons = ref(1);
-let propina = ref(0);
+let pagos = ref<any>([]);
+
 
 
 //METODO DE PAGO
@@ -48,10 +47,13 @@ const borrarNumeroPanel = (): void => {
     ingresado.value = 0;
 }
 
-
+const propinas = ref(0);
 //PETICIONES AL BACKEND
 
-//RECIBIR LOS PAGOS HECHOS
+//CALCULAR PAGOS PROPINAS POR EMPLEADOS
+const propinasEmpleados = (propina: number): void => {
+    propinas.value = propina;
+}
 
 onMounted(() => {
     axios('/pagos')
@@ -61,7 +63,6 @@ onMounted(() => {
 
 //ENVIAR PAGO
 const enviarPago = async (data: object) => {
-    console.log(data)
     try {
         const resp = await axios.post('/pagos', data);
         console.log(resp.data);
@@ -76,62 +77,16 @@ const existenPagos = computed(() => pagos.value.length > 0);
 
 
 
-//CALCULAR PROPINA POR PERSONA
-
-
-
-const updatePropina = (e: Event) => {
-    const inputValue = parseFloat(e.target.value);
-    if (!isNaN(inputValue) && inputValue >= 0) {
-        propina.value = inputValue;
-    }
-    else {
-        throw new Error('El número de la propina debe ser un entero positivo.');
-    }
-};
-const updatePerson = (e: Event) => {
-    const inputValue = parseFloat(e.target.value);
-    if (!isNaN(inputValue) && inputValue >= 0) {
-        persons.value = inputValue;
-    }
-    else {
-        throw new Error('El número de empleados debe ser un entero positivo.');
-    }
-};
-const totalPorPersona = computed(() => tipCalculator.tipPerEmployee(propina.value, persons.value));
-console.log(totalPorPersona.value)
-
-
-//ENVIAR FORMULARIO DEL PAGO
-
 
 </script>
 <template>
     <div class="flex flex-col gap-10 py-6 justify-center items-center md:flex-row md:justify-center md:items-start">
 
         <div class="flex flex-col gap-4 justify-between w-1/3">
-            <div class="text-[--color2] font-bold flex flex-col w-full items-center">
-                <p>Total Propinas</p>
-                <div class="flex flex-row items-center gap-2">
-                    <input type="number" class="w-56 bg-[--color3] rounded-md text-4xl py-2 text-center" min="1"
-                        @input="updatePropina" v-model="propina">
-                    <font-awesome-icon icon="edit" size="2x" class="text-[--color4]" />
-                </div>
-            </div>
-            <div>
-                <p class="font-extrabold text-[--color4] text-xl">Entre cuántos quieres dividir las Propinas?</p>
-                <div class="flex flex-row gap-6 my-4 items-center">
-                    <input type="number"
-                        class="rounded-2xl h-11 w-24 text-center border border-gray-400 focus:border-gray-400"
-                        v-model="persons" required min="1" @input="updatePerson">
-                    <p v-if="persons > 0" class="text-[--color2] font-extrabold text-xl">{{ formatMoney(totalPorPersona) }}
-                        por
-                        persona
-                    </p>
-                    <p v-else class="text-[--color2] font-extrabold text-xl">Coloca la cantidad de personas</p>
-                </div>
-            </div>
-
+            <!--TOTAL QUE LE CORRESPONDE A CADA EMPLEADO POR PROPINA-->
+            <PagoPorEmpleado
+            :selected-propina="propinasEmpleados" @on-change-propina="propinasEmpleados"
+            />
             <!--SELECCIONA EL METODO DE PAGO-->
             <div class="flex flex-row items-center gap-3">
                 <font-awesome-icon icon="wallet" />
