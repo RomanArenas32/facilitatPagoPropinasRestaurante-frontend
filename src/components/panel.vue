@@ -45,14 +45,10 @@ const borrarNumeroPanel = (): void => {
     numero.value = [];
     ingresado.value = 0;
 }
-//CUANTO RESTA PAGAR
-const onChangeResta = (restaPagar: number): any => {
-    restaPagar.value = restaPagar;
-}
 
 //CALCULAR PAGOS PROPINAS POR EMPLEADOS
 
-const onChangePropina = (propina: number): any => {
+const onChangePropina = (propina: number): void => {
     tips.value = propina;
 }
 
