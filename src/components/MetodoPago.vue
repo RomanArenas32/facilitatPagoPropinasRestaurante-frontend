@@ -3,7 +3,7 @@
 //SI DESEAS AGREGAR MAS METODOS DE PAGO SOLO INGRESALOS EN EL ARREGLO "posiblesPagos"
 const posiblesPagos = ["efectivo", "BBVA 1234", "Santander 1234"];
 
-const prop = defineProps<{
+const props = defineProps<{
     selectedPago: String
 }>();
 
@@ -18,7 +18,7 @@ const emits = defineEmits<{
 <template>
     <div class="text-[--color4] font-extrabold text-xl mt-10 flex flex-col gap-8"
     v-for="pago in posiblesPagos"
-    :class="{'active': prop.selectedPago === pago}"
+    :class="{'active': props.selectedPago === pago}"
     @click="emits('onChangePago', pago)"
     >
         <div class="flex flex-wrap font-semibold text-sm gap-1 ">

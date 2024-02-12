@@ -16,7 +16,8 @@ const solicitudPago = ref({
 const numero = ref<string[]>([]);
 const ingresado = ref<number>(0);
 let pagos = ref<object>([]);
-
+let persons = ref(1);
+let propina = ref(0);
 
 
 //METODO DE PAGO
@@ -54,7 +55,7 @@ const borrarNumeroPanel = (): void => {
 
 onMounted(() => {
     axios('/pagos')
-        .then(resp => { pagos.value = resp.data.pagos;})
+        .then(resp => { pagos.value = resp.data.pagos; })
         .catch(error => console.log(error));
 });
 
@@ -70,22 +71,13 @@ const enviarPago = async (data: object) => {
 };
 
 
-
-
-
-
-// LLENAR EL ARREGLO DE PAGOS
-
-
-
 //comprueba si existen pagos realizados
 const existenPagos = computed(() => pagos.value.length > 0);
 
-let cantidadRestante = 2
+
 
 //CALCULAR PROPINA POR PERSONA
-let persons = ref(1);
-let propina = ref(0);
+
 
 
 const updatePropina = (e: Event) => {
@@ -107,7 +99,7 @@ const updatePerson = (e: Event) => {
     }
 };
 const totalPorPersona = computed(() => tipCalculator.tipPerEmployee(propina.value, persons.value));
-
+console.log(totalPorPersona.value)
 
 
 //ENVIAR FORMULARIO DEL PAGO
@@ -167,7 +159,7 @@ const totalPorPersona = computed(() => tipCalculator.tipPerEmployee(propina.valu
             </div>
 
 
-            <div v-if="cantidadRestante"
+            <div v-if="ingresado > 0"
                 class="w-full bg-[--color3] border-2 border-[--color2] mt-3 rounded-3xl grid place-items-center text-[--color2] font-bold text-xl h-14">
                 {{ formatMoney(ingresado) }}
             </div>
